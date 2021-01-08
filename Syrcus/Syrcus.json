@@ -1,0 +1,12 @@
+{
+  "Author": "ChalkPE",
+  "Name": "Syrcus",
+  "Description": "Send or receive in-game data via WebSocket",
+  "InternalName": "Syrcus",
+  "AssemblyVersion": "1.0.0.0",
+  "RepoUrl": "https://github.com/ChalkPE/Syrcus",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": "2",
+  "DalamudApplicableVersion": ">=4.9.8.3",
+  "Tags": ["chat", "bridge"]
+}
