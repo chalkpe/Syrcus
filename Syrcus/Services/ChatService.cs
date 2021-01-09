@@ -57,50 +57,56 @@ namespace Syrcus.Services {
         };
       }
 
-      if (data.Type == JTokenType.Object) {
-        JObject o = data as JObject;
-        XivChatEntry entry = new XivChatEntry();
-
-        if (o.ContainsKey("type") && o["type"].Type == JTokenType.Integer) {
-          entry.Type = (XivChatType) (ushort) o["type"];
-        }
-
-        if (o.ContainsKey("senderId") && o["senderId"].Type == JTokenType.Integer) {
-          entry.SenderId = (uint) o["senderId"];
-        }
-
-        if (o.ContainsKey("name") && o["name"].Type == JTokenType.String) {
-          entry.Name = (string) o["name"];
-        }
-
-        if (o.ContainsKey("payloads") && o["payloads"].Type == JTokenType.Array) {
-          List<Payload> payloads = new List<Payload>();
-
-          foreach (var p in o["payloads"] as JArray) {
-            if (p.Type != JTokenType.Array) continue;
-            var payload = p as JArray;
-
-            var type = payload[0];
-            if (type.Type != JTokenType.String) continue;
-
-            if (payload.Count == 2) {
-              if (type.ToString() == "Text" && payload[1].Type == JTokenType.String) {
-                payloads.Add(new TextPayload((string) payload[1]));
-              }
-
-              if (type.ToString() == "UIForeground" && payload[1].Type == JTokenType.Integer) {
-                payloads.Add(new UIForegroundPayload(Plugin.pi.Data, (ushort) payload[1]));
-              }
-            }
-          }
-
-          entry.MessageBytes = new SeString(payloads).Encode();
-        }
-
-        return entry;
+      if (data.Type != JTokenType.Object) {
+        return null;
       }
 
-      return null;
+      JObject o = data as JObject;
+      XivChatEntry entry = new XivChatEntry();
+      List<Payload> payloads = new List<Payload>();
+
+      if (o.ContainsKey("type") && o["type"].Type == JTokenType.Integer) {
+        entry.Type = (XivChatType) (ushort) o["type"];
+      }
+
+      if (o.ContainsKey("senderId") && o["senderId"].Type == JTokenType.Integer) {
+        entry.SenderId = (uint) o["senderId"];
+      }
+
+      if (o.ContainsKey("name") && o["name"].Type == JTokenType.String) {
+        entry.Name = (string) o["name"];
+      }
+
+      if (o.ContainsKey("text") && o["text"].Type == JTokenType.String) {
+        payloads.Add(new TextPayload((string) o["text"]));
+      }
+        
+      if (o.ContainsKey("payloads") && o["payloads"].Type == JTokenType.Array) {
+        foreach (var p in o["payloads"] as JArray) {
+          if (p.Type != JTokenType.Array) continue;
+          var payload = p as JArray;
+
+          var type = payload[0];
+          if (type.Type != JTokenType.String) continue;
+
+          if (payload.Count == 2) {
+            if (type.ToString() == "Text" && payload[1].Type == JTokenType.String) {
+              payloads.Add(new TextPayload((string) payload[1]));
+            }
+
+            if (type.ToString() == "UIForeground" && payload[1].Type == JTokenType.Integer) {
+              payloads.Add(new UIForegroundPayload(Plugin.pi.Data, (ushort) payload[1]));
+            }
+
+            if (type.ToString() == "Icon" && payload[1].Type == JTokenType.Integer) {
+              payloads.Add(new IconPayload((BitmapFontIcon) (uint) payload[1]));
+            }
+          }
+        }
+      }
+
+      entry.MessageBytes = new SeString(payloads).Encode();
+      return entry;
     }
   }
 }
