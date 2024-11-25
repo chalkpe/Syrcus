@@ -1,62 +1,48 @@
-using Dalamud.Game.Chat;
-using Dalamud.Game.Chat.SeStringHandling;
-using Dalamud.Game.Chat.SeStringHandling.Payloads;
-using Dalamud.Game.Internal;
+using Dalamud.IoC;
 using Dalamud.Plugin;
-using Newtonsoft.Json.Linq;
+using Dalamud.Plugin.Services;
 using Syrcus.Services;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using WebSocketSharp;
 using WebSocketSharp.Server;
 
-namespace Syrcus {
-  public class Plugin: IDalamudPlugin {
-    public string Name => "Syrcus";
+namespace Syrcus;
 
-    public static WebSocketServer server { get; private set; }
-    public static DalamudPluginInterface pi { get; private set; }
-    private List<Service> services;
+public sealed class Plugin: IDalamudPlugin {
+  public static WebSocketServer server { get; private set; }
+  private List<Service> services;
 
-    public void Initialize (DalamudPluginInterface pluginInterface) {
-      services = new List<Service> {
+  [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
+  [PluginService] internal static IFramework Framework { get; private set; } = null!;
+  [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
+
+  public Plugin () {
+    services = new List<Service> {
         new ChatService()
       };
 
-      pi = pluginInterface;
-      pi.Framework.OnUpdateEvent += OnUpdate;
-
-      server = new WebSocketServer(10078);
-      foreach (var serv in services) {
-        serv.Enable();
-      }
-      server.Start();
-
-      PluginLog.Information("Loaded");
+    server = new WebSocketServer(10078);
+    foreach (var serv in services) {
+      serv.Enable();
     }
+    server.Start();
 
-    private void OnUpdate (Framework framework) {
-      foreach (var serv in services) {
-        serv.Update();
-      }
+    Framework.Update += OnUpdate;
+  }
+
+  private void OnUpdate (IFramework framework) {
+    foreach (var serv in services) {
+      serv.Update();
     }
+  }
 
-    #region IDisposable Support
-    protected virtual void Dispose (bool disposing) {
-      if (!disposing) return;
 
-      foreach (var serv in services) {
-        serv.Disable();
-      }
-      server.Stop();
-      pi.Dispose();
+  public void Dispose () {
+
+    foreach (var serv in services) {
+      serv.Disable();
     }
+    server.Stop();
 
-    public void Dispose () {
-      Dispose(true);
-      GC.SuppressFinalize(this);
-    }
-    #endregion
+    Framework.Update -= OnUpdate;
   }
 }

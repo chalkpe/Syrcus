@@ -1,5 +1,3 @@
-using Dalamud.Plugin;
-using System.Collections.Generic;
 using WebSocketSharp.Server;
 
 namespace Syrcus.Services {

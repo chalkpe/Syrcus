@@ -1,44 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="Dalamud.Plugin.Bootstrap.targets"/>
+	<PropertyGroup>
+		<Version>0.0.0.1</Version>
+		<Description>Send or receive in-game data via WebSocket</Description>
+		<PackageProjectUrl>https://github.com/chalkpe/Syrcus</PackageProjectUrl>
+		<PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-    <LangVersion>8.0</LangVersion>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Endpoints\**" />
-    <EmbeddedResource Remove="Endpoints\**" />
-    <None Remove="Endpoints\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="1.1.0" />
-    <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Dalamud">
-      <HintPath Condition="Exists('$(AppData)\XIVLauncher\addon\Hooks')">$(AppData)\XIVLauncher\addon\Hooks\Dalamud.dll</HintPath>
-      <HintPath Condition="Exists('$(DalamudHooks)')">$(DalamudHooks)\Dalamud.dll</HintPath>
-      <HintPath Condition="Exists('..\Dalamud\Dalamud\bin\Debug')">..\Dalamud\Dalamud\bin\Debug\Dalamud.dll</HintPath>
-      <HintPath Condition="Exists('..\..\Dalamud\Dalamud\bin\Debug')">..\..\Dalamud\Dalamud\bin\Debug\Dalamud.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-
-    <Reference Include="Newtonsoft.Json">
-      <HintPath Condition="Exists('$(AppData)\XIVLauncher\addon\Hooks')">$(AppData)\XIVLauncher\addon\Hooks\Newtonsoft.Json.dll</HintPath>
-      <HintPath Condition="Exists('$(DalamudHooks)')">$(DalamudHooks)\Newtonsoft.Json.dll</HintPath>
-      <HintPath Condition="Exists('..\Dalamud\Dalamud\bin\Debug')">..\Dalamud\Dalamud\bin\Debug\Newtonsoft.Json.dll</HintPath>
-      <HintPath Condition="Exists('..\..\Dalamud\Dalamud\bin\Debug')">..\..\Dalamud\Dalamud\bin\Debug\Newtonsoft.Json.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Syrcus.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="DalamudPackager" Version="11.0.0" />
+		<PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
+	</ItemGroup>
 </Project>
