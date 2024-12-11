@@ -1,6 +1,10 @@
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Memory;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,15 +14,19 @@ namespace Syrcus.Services;
 
 public class ChatService: Service {
   public static string Endpoint => "/chat";
-  private static Queue<string> queue = new Queue<string>();
+  private static readonly Queue<string> queue = new();
 
   public override void Enable () {
     Plugin.ChatGui.ChatMessage += OnXivMessage;
+    Plugin.AddonLifecycle.RegisterListener(AddonEvent.PreSetup, "TalkSubtitle", this.OnTalkSubtitle);
+    Plugin.AddonLifecycle.RegisterListener(AddonEvent.PreRefresh, "TalkSubtitle", this.OnTalkSubtitle);
     Plugin.server.AddWebSocketService<ChatService>(Endpoint);
   }
 
   public override void Disable () {
     Plugin.ChatGui.ChatMessage -= OnXivMessage;
+    Plugin.AddonLifecycle.UnregisterListener(AddonEvent.PreSetup, "TalkSubtitle", this.OnTalkSubtitle);
+    Plugin.AddonLifecycle.UnregisterListener(AddonEvent.PreRefresh, "TalkSubtitle", this.OnTalkSubtitle);
   }
 
   protected override void OnMessage (MessageEventArgs e) {
@@ -33,12 +41,40 @@ public class ChatService: Service {
     if (entry != null) Plugin.ChatGui.Print(entry);
   }
 
+  private unsafe void OnTalkSubtitle(AddonEvent type, AddonArgs args) {     
+    switch (args) {
+      case AddonSetupArgs setupArgs:
+        HandleOnTalkSubtitle((AtkValue*) setupArgs.AtkValues);
+        break;
+      case AddonRefreshArgs refreshArgs:
+        HandleOnTalkSubtitle((AtkValue*) refreshArgs.AtkValues);
+        break;
+    }
+  }
+
+  private unsafe void HandleOnTalkSubtitle(AtkValue* atkValues) {
+    if (atkValues == null) return;
+    if (atkValues[0].Type != ValueType.String || atkValues[0].String == null) return;
+
+    var message = MemoryHelper.ReadSeStringAsString(out _, (nint) atkValues[0].String);
+    if (message == string.Empty) return;
+
+    var obj = new JObject {
+      ["type"] = -1,
+      ["sender"] = "",
+      ["message"] = message
+    };
+
+    Plugin.server.WebSocketServices[Endpoint].Sessions.Broadcast(obj.ToString());
+  }
+
   private void OnXivMessage (XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled) {
-    var obj = new JObject();
-    obj["type"] = (ushort) type;
-    obj["sender"] = sender?.TextValue;
-    obj["message"] = message?.TextValue;
-    obj["isHandled"] = isHandled;
+    var obj = new JObject {
+      ["type"] = (ushort) type,
+      ["sender"] = sender?.TextValue,
+      ["message"] = message?.TextValue,
+      ["isHandled"] = isHandled
+    };
 
     Plugin.server.WebSocketServices[Endpoint].Sessions.Broadcast(obj.ToString());
   }
