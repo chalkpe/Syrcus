@@ -56,7 +56,7 @@ public class ChatService: Service {
     if (atkValues == null) return;
     if (atkValues[0].Type != ValueType.String || atkValues[0].String == null) return;
 
-    var message = MemoryHelper.ReadSeStringAsString(out _, (nint) atkValues[0].String);
+    var message = MemoryHelper.ReadSeStringAsString(out _, (nint) atkValues[0].String.Value);
     if (message == string.Empty) return;
 
     var obj = new JObject {
